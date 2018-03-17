@@ -516,6 +516,10 @@ int main() {
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
     
+    
+    
+    
+    // update some parameters for next case
     double kappa = 4;
     double theta = 0.2;
     v0 = 0.2;
