@@ -1,2 +1,2 @@
 # numericalmethods
-compile using both vanill.cpp, Normal.cpp
+compile using both vanilla.cpp, Normal.cpp
