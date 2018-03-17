@@ -126,6 +126,8 @@ protected:
     double v0;
     bool is_call;
     
+    double rho_sign = 1;
+    
     string model;
     
     unsigned int N; // number of time partitions
@@ -146,7 +148,7 @@ protected:
         return X1;
     }
     double cal_Y2( double X1, double X2, double rho ) {
-        return rho * X1 + pow(1-rho*rho,0.5) * X2;
+        return rho * rho_sign * X1 + pow(1-rho*rho,0.5) * X2;
     }
     
     double cal_P_BS(double T, double v0_fut) {
@@ -186,6 +188,8 @@ protected:
         double dt_sqrt = pow(dt, 0.5); // calculate fix value
         double discount = exp(-r * T); // discouting factor
         
+        update_Q_measure(rho); // update rho if needed
+        
         double this_price; // itermediate price results
         double price_sum = 0;
         double price_sum_sqr = 0;
@@ -197,8 +201,6 @@ protected:
         
         double s = s0; // intermediate price
         double v = v0; // intermediate volatility
-        
-        // run the simulation, NO variance reduction
         
         
         double tol = 1/pow(10.0,4); //
@@ -308,6 +310,8 @@ protected:
     virtual double NW(double T) {};
     virtual double NN(double T) {};
     
+    virtual void update_Q_measure(double rho) {}; // Update the kappa_Q, theta_Q using the input rho;
+    
     void ap_pricing(double rho, double T, vector<double> &res ) {
         // prameter initlisation
         clock_t c;
@@ -315,6 +319,8 @@ protected:
         double price;
         
         c = clock();
+        
+        update_Q_measure(rho);
         
         double v0_est = vt(T);
         double v0_fut = v0_est;
@@ -328,7 +334,7 @@ protected:
         double d_plus = ( log(s0 / K ) + ( r + pow(v0_fut,2.0) / 2.0 ) * T ) / ( v0_fut * pow(T, 0.5) );
         double d_mins = d_plus - v0_fut * pow( T, 0.5 );
         
-        double first_bracket  = rho/2.0 * H(T,v0_fut,d_plus,d_mins) * NW(T);
+        double first_bracket  = rho*rho_sign/2.0 * H(T,v0_fut,d_plus,d_mins) * NW(T);
         double second_bracket = 1.0/8.0 * J(T,v0_fut,d_plus,d_mins) * NN(T);
         
         // record time
@@ -382,7 +388,7 @@ public:
             cout << "   r        = " << r  << endl;
             cout << "   gamma    = " << gamma  << endl;
             cout << "   v0       = " << v0  << endl;
-            cout << "   rho      = " << rho << endl;
+            cout << "   rho      = " << rho*rho_sign << endl;
             if( !icompare(method,"ap") ) {
                 cout << "   N        = " << N << endl;
             }
@@ -497,6 +503,82 @@ public:
 
 /************************************************************************************************************************************************************************/
 
+// Stein Stein BARRIER model
+class SSB_option : public base_option{
+protected:
+    double kappa;
+    double theta;
+    double kappa_base;
+    double theta_base;
+    
+    void print_model_para() {
+        //  cout << "            = " << << endl;
+        cout << "   kappa    = " << kappa_base << endl;
+        cout << "   theta    = " << theta_base << endl;
+        cout << "   kappa_Q  = " << kappa << endl;
+        cout << "   theta_Q  = " << theta << endl;
+    }
+    
+    double v_increment(double v, double W, double dt, double dt_sqrt) {
+        return kappa*( theta - v ) * dt + gamma * W * dt_sqrt;
+    }
+    
+    double s_increment(double s, double Z, double dt, double dt_sqrt, double v) {
+        return r * s * dt + v * s * Z * dt_sqrt;
+    }
+    
+    double NW(double T) {
+        // PAGE 43
+        double term_1 = gamma / pow( kappa, 2.0 );
+        double term_2 = 0.5 * ( pow(theta,2.0) * ( 4.0*kappa*T - 9.0) + v0*(v0 + 4.0*theta) + pow(gamma,2.0) / kappa * ( kappa * T - 1.0 ) );
+        double term_3 = ( 2.0*theta *kappa*T*(theta-v0) + 2.0*theta * ( 3.0*theta - 2.0 * v0 ) ) * exp( -kappa * T );
+        double term_4 = 0.5 * ( pow(gamma,2.0)/kappa * ( kappa*T + 1.0 ) - (theta - v0 ) * ( 3.0*theta - v0 ) - 2.0 * kappa * T * pow( theta - v0, 2.0 )  ) * exp( -2.0*kappa*T );
+        
+        return term_1 * ( term_2 + term_3 + term_4 );
+    }
+    
+    double NN(double T) {
+        // PAGE 44
+        double term_1 = pow(gamma,2.0) / pow( kappa, 3.0 );
+        double term_2 = 0.5 * ( - 5.0 * pow(gamma,2.0)/( 4.0*kappa) + pow(v0,2.0) + 6.0 * theta * v0 - 19.0 * pow(theta, 2.0) + T * ( 8.0*pow(theta,2.0)*kappa + pow(gamma,2.0) ) );
+        double term_3 = ( 2.0*theta * ( 7.0*theta - 3*v0 ) + 4.0 * theta * ( theta - v0 ) * kappa * T ) * exp( -kappa*T );
+        double term_4 = ( 2.0*theta*( 2.0 *v0 - 3.0 *theta) + T * ( pow(gamma,2.0) - 2.0 * kappa * pow(theta-v0, 2.0) ) + pow(gamma,2.0)/(2.0*kappa) ) * exp( -2.0*kappa*T );
+        double term_5 = ( 2.0*theta*(theta - v0) ) * exp( -3.0*kappa*T );
+        double term_6 = 0.5 * ( pow(gamma,2.0) / ( 4.0 * kappa ) - pow( theta - v0, 2.0) ) * exp( -4.0*kappa*T );
+        
+        return term_1 * ( term_2 + term_3 + term_4 + term_5 + term_6 );
+    }
+    
+    void update_Q_measure(double rho) {
+        // Update the kappa_Q, theta_Q using the input rho;
+        // !!!CHECK: if this depends on RHO before OR after changing sign
+        kappa = kappa_base - gamma * rho; // new kappa under measure Q
+        theta = kappa_base * theta_base / ( kappa_base - gamma * rho ); // new theta under measure Q
+    };
+    
+public:
+    SSB_option(const string& type, double s0, double K, double r, double gamma, double v0, int N, double kappa, double theta, double B):base_option(type, s0, K, r, gamma, v0, N),kappa(kappa),theta(theta),kappa_base(kappa),theta_base(theta) {
+        model = "Stein Stein Barrier";
+        
+        // PAGE 61
+        // calculate all the new values for the parameters
+        double K_new = B / K; // new stirke
+        double r_new = -r; // change the sign of r
+        
+        // reverse the rho_sign
+        rho_sign = -1;
+        
+        // update the new values
+        K = K_new;
+        r = r_new;
+    }
+};
+
+
+/************************************************************************************************************************************************************************/
+
+
+
 int main() {
     double s0 = 100;
     double K = 97;
@@ -510,12 +592,14 @@ int main() {
     double rho = -0.5;
     double T = 0.125;
     
-    // create an option under Hull White model
+    
+    /*
+    // create an put option under Hull White model
     // PAGE 46
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
-    
+    */
     
     
     
@@ -524,11 +608,27 @@ int main() {
     double theta = 0.2;
     v0 = 0.2;
     
-    // create an option under Stein Stein model
+    /*
+    // create an put option under Stein Stein model
     // PAGE 49
     SS_option SS_opt("put",s0,K,r,gamma,v0,N,kappa,theta);
     SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
+     */
 
+    
+    
+    // update some parameters for next case;
+    double B = 95;
+    r = 0;
+    theta = 0.04;
+    T = 0.5;
+    
+    // create an barrier option under Stein Stein model
+    // PAGE 62
+    SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
+    SSB_opt.calculate_price("finite_diff",rho,T,true);
+    SSB_opt.calculate_price("decomp_approx",rho,T,true);
+    
 	return 0;
 }
