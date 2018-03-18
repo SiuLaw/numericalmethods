@@ -17,7 +17,6 @@
 #include "Hull_White.h"
 #include "Stein_Stein.h"
 #include "Stein_Stein_Barrier.h"
-//#define M_PI 3.141592653589793238462643383279502884
 
 using namespace std;
 
@@ -66,13 +65,13 @@ int main() {
     theta = 0.2;
     
     SS_option SS_opt("put",s0,K,r,gamma,v0,N,kappa,theta);
-    SS_opt.calculate_price("finite_diff",rho,T,false);
+    SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
     
     
     
     
-    
+    /*
     // create an barrier option under Stein Stein model
     // PAGE 62
      B = 95;
@@ -81,8 +80,9 @@ int main() {
      T = 0.5;
      
     SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
-    SSB_opt.calculate_price("finite_diff",rho,T,false);
+    SSB_opt.calculate_price("finite_diff",rho,T,true);
     SSB_opt.calculate_price("decomp_approx",rho,T,true);
+     */
     
 
     
