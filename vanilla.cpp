@@ -12,23 +12,10 @@
 #include <algorithm>
 #include <iterator>
 #include "Normal.h"
+#include "misc_functions.h"
 //#define M_PI 3.141592653589793238462643383279502884
 
 using namespace std;
-
-vector<double> linspace( double start, double end, int num_of_steps ) {
-    vector<double> res;
-    double step_size = (end - start) / ( num_of_steps );
-    double cur_val = start;
-    
-    res.push_back(cur_val);
-    for( int i = 0; i < (num_of_steps); i++ ) {
-        cur_val += step_size;
-        res.push_back( cur_val );
-    }
-    
-    return res;
-}
 
 void print( vector<double> vec ) {
     for( unsigned int i = 0; i < vec.size(); i++ ) {
@@ -717,7 +704,7 @@ int main() {
     
     
     
-    /*
+    
     // PAGE 52;
     s0 = 100;
     K = 97;
@@ -735,6 +722,7 @@ int main() {
     mg = mesh_grid( 0,-1,2, 0.1,0.4,2 );
     print(mg);
     
+    /*
     vector<vector<double> > fd_mat, ap_mat;
     vector<double> fd_vec, ap_vec;
     vector<double> fd_res, ap_res ;
