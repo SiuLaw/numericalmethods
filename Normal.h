@@ -24,5 +24,4 @@ public:
     vector<double> generate(unsigned int n);
 };
 
-
 #endif //SIMULATIONMETHODS_NORMAL_H
