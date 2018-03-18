@@ -46,8 +46,7 @@ void print( vector<vector<vector<double> > > mat ) {
     for( unsigned int i = 0; i < mat.size(); i++ ) {
         for( unsigned int j = 0; j < mat[i].size(); j++ ) {
             cout << "(";
-            k = 0;
-            for( k; k < mat[i][j].size()-1; k++ ) {
+            for( k = 0; k < mat[i][j].size()-1; k++ ) {
                 cout << mat[i][j][k] << ",";
             }
             cout << mat[i][j][k] << ") ";

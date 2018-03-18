@@ -12,8 +12,8 @@ class Normal: public Random {
 private:
     default_random_engine generator;
 protected:
-    double m_Mean = 0.0;
-    double m_Variance = 1.0;
+    double m_Mean;
+    double m_Variance;
     vector<double> custom_generate(unsigned int n);
     vector<double> standard_generate(unsigned int n);
 public:

@@ -13,13 +13,13 @@
 #include <iterator>
 #include "Normal.h"
 #include "misc_functions.h"
+#include "base_option.h"
 //#define M_PI 3.141592653589793238462643383279502884
 
 using namespace std;
 
 //Normal random number generator
 Normal normal(Custom);
-
 
 //base class
 class base_option{
@@ -31,7 +31,7 @@ protected:
     double v0;
     bool is_call;
     
-    double rho_sign = 1;
+    double rho_sign;
     
     string model;
     
@@ -81,8 +81,8 @@ protected:
         cout << "   ... no additional model para specified" << endl;
     }
     
-    virtual double v_increment(double v, double Z, double dt, double dt_sqrt) {};
-    virtual double s_increment(double s, double W, double dt, double dt_sqrt, double v) {};
+    virtual double v_increment(double v, double Z, double dt, double dt_sqrt) { return 0; }
+    virtual double s_increment(double s, double W, double dt, double dt_sqrt, double v) { return 0; }
     
     void fd_pricing(double rho, double T, vector<double>& res, bool display_flag) {
         // prameter initlisation
@@ -211,8 +211,8 @@ protected:
         
     }
     
-    virtual double NW(double T) {};
-    virtual double NN(double T) {};
+    virtual double NW(double T) {return 0;}
+    virtual double NN(double T) {return 0;}
     
     virtual void update_Q_measure(double rho) {}; // Update the kappa_Q, theta_Q using the input rho;
     
@@ -251,7 +251,6 @@ protected:
         // cout << "P_BS = " << P_BS << endl;
         
     }
-
 public:
     base_option(const string& type, double s0, double K, double r, double gamma, double v0, int N):s0(s0),K(K),r(r),gamma(gamma),v0(v0), N(N) {
         if(icompare(type,"call")){
@@ -262,6 +261,8 @@ public:
             cout << "call/put string not understood, default to call" << endl;
             is_call = true;
         }
+        
+        rho_sign = 1; // by default, the rho is not reversed;
     }
     
     void set_gamma(double new_gamma ) {
@@ -500,21 +501,22 @@ int main() {
     /*
     // PAGE 46
     // create an put option under Hull White model
-     s0 = 100;
-     K = 97;
-     r = 0.01;
-     gamma = 0.1;
-     v0 = 0.04;
-     
-     rho = -0.5;
-     T = 0.125;
-     
-     mu = 0.2;
+    s0 = 100;
+    K = 97;
+    r = 0.01;
+    gamma = 0.1;
+    v0 = 0.04;
+    
+    rho = -0.5;
+    T = 0.125;
+    
+    mu = 0.2;
      
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
-    */
+     */
+    
     
     
     
@@ -552,10 +554,7 @@ int main() {
     SSB_opt.calculate_price("decomp_approx",rho,T,true);
      */
     
-    
-    
-    
-    
+    /*
     // PAGE 52;
     s0 = 100;
     K = 97;
@@ -572,6 +571,8 @@ int main() {
     // mesh_grid( rho_start, rho_end, rho_steps,  gamma_start, gamma_end, gamma_steps )
     mg = mesh_grid( 0,-1,2, 0.1,0.4,2 );
     print(mg);
+     */
+    
     
     /*
     vector<vector<double> > fd_mat, ap_mat;
