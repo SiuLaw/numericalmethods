@@ -660,8 +660,8 @@ int main() {
     int N = 10; // number of path steps in the simulation
     
     /*
-    // create an put option under Hull White model
     // PAGE 46
+    // create an put option under Hull White model
      s0 = 100;
      K = 97;
      r = 0.01;
@@ -672,24 +672,33 @@ int main() {
      T = 0.125;
      
      mu = 0.2;
+     
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
     */
     
+    
+    
     /*
-    // create an put option under Stein Stein model
     // PAGE 49
-     kappa = 4;
-     theta = 0.2;
-     v0 = 0.2;
+    // create an put option under Stein Stein model
+    s0 = 100;
+    K = 97;
+    r = 0.01;
+    gamma = 0.1;
+    v0 = 0.2;
+    
+    T = 0.5;
+    rho = -0.5;
+    
+    kappa = 4;
+    theta = 0.2;
+    
     SS_option SS_opt("put",s0,K,r,gamma,v0,N,kappa,theta);
     SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
      */
-
-    
-    // update some parameters for next case;
     
     
     /*
@@ -699,6 +708,7 @@ int main() {
      r = 0;
      theta = 0.04;
      T = 0.5;
+     
     SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
     SSB_opt.calculate_price("finite_diff",rho,T,true);
     SSB_opt.calculate_price("decomp_approx",rho,T,true);
@@ -707,7 +717,7 @@ int main() {
     
     
     
-    
+    /*
     // PAGE 52;
     s0 = 100;
     K = 97;
@@ -765,7 +775,7 @@ int main() {
     cout << "approx value = " << endl;
     print(ap_mat);
     cout << endl;
-    
+     */
     
 	return 0;
 }
