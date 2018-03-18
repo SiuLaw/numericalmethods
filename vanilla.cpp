@@ -16,6 +16,73 @@
 
 using namespace std;
 
+vector<double> linspace( double start, double end, int num_of_steps ) {
+    vector<double> res;
+    double step_size = (end - start) / ( num_of_steps );
+    double cur_val = start;
+    
+    res.push_back(cur_val);
+    for( int i = 0; i < (num_of_steps); i++ ) {
+        cur_val += step_size;
+        res.push_back( cur_val );
+    }
+    
+    return res;
+}
+
+void print( vector<double> vec ) {
+    for( unsigned int i = 0; i < vec.size(); i++ ) {
+        cout << vec[i] << ", ";
+    }
+}
+
+void print( vector<vector<double> > mat ) {
+    for( unsigned int i = 0; i < mat.size(); i++ ) {
+        for( unsigned int j = 0; j < mat[i].size(); j++ ) {
+            cout << mat[i][j] << ", ";
+        }
+        cout << endl;
+    }
+}
+
+void print( vector<vector<vector<double> > > mat ) {
+    unsigned int k;
+    for( unsigned int i = 0; i < mat.size(); i++ ) {
+        for( unsigned int j = 0; j < mat[i].size(); j++ ) {
+            cout << "(";
+            k = 0;
+            for( k; k < mat[i][j].size()-1; k++ ) {
+                cout << mat[i][j][k] << ",";
+            }
+            cout << mat[i][j][k] << ") ";
+        }
+        cout << endl;
+    }
+}
+
+vector<vector<vector<double> > > mesh_grid( double x_start, double x_end, int x_steps, double y_start, double y_end, int y_steps ) {
+    vector<double> x_vec, y_vec;
+    vector<vector<vector<double> > > res_mat;
+    vector<vector<double> > row;
+    vector<double> cell;
+    
+    x_vec = linspace( x_start, x_end, x_steps );
+    y_vec = linspace( y_start, y_end, y_steps );
+    
+    for( int i = 0; i < y_vec.size(); i++ ) {
+        for( int j = 0; j < x_vec.size(); j++ ) {
+            cell.push_back( x_vec[j] );
+            cell.push_back( y_vec[i] );
+            row.push_back( cell );
+            cell.clear();
+        }
+        res_mat.push_back(row);
+        row.clear();
+    }
+    
+    return res_mat;
+}
+
 void hline(int n) {
     for(int i = 0; i < n; i++ ) {
         cout << "-";
@@ -131,7 +198,6 @@ protected:
     string model;
     
     unsigned int N; // number of time partitions
-    
 
     // this function calculate pay off
     double pay_off(double S){
@@ -360,6 +426,10 @@ public:
         }
     }
     
+    void set_gamma(double new_gamma ) {
+        gamma = new_gamma;
+    }
+    
     vector<double> calculate_price(const string& method, double rho = -0.5, double T = 1.0, bool display_results = false) {
         
         // return containeer
@@ -580,55 +650,122 @@ public:
 
 
 int main() {
-    double s0 = 100;
-    double K = 97;
-    double r = 0.01;
-    double mu = 0.2;
-    double gamma = 0.1;
-    double v0 = 0.04;
+    // parameters defind;
+    double s0,K,r,v0; // these are variables used by both models;
+    double rho,T,gamma; // these are variables that will be varied
+    double mu,kappa,theta; // theres are model specific variables;
     
-    int N = 10;
+    double B; // barrier value for later models;
     
-    double rho = -0.5;
-    double T = 0.125;
-    
+    int N = 10; // number of path steps in the simulation
     
     /*
     // create an put option under Hull White model
     // PAGE 46
+     s0 = 100;
+     K = 97;
+     r = 0.01;
+     gamma = 0.1;
+     v0 = 0.04;
+     
+     rho = -0.5;
+     T = 0.125;
+     
+     mu = 0.2;
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
     */
     
-    
-    
-    // update some parameters for next case
-    double kappa = 4;
-    double theta = 0.2;
-    v0 = 0.2;
-    
     /*
     // create an put option under Stein Stein model
     // PAGE 49
+     kappa = 4;
+     theta = 0.2;
+     v0 = 0.2;
     SS_option SS_opt("put",s0,K,r,gamma,v0,N,kappa,theta);
     SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
      */
 
     
-    
     // update some parameters for next case;
-    double B = 95;
-    r = 0;
-    theta = 0.04;
-    T = 0.5;
     
+    
+    /*
     // create an barrier option under Stein Stein model
     // PAGE 62
+     B = 95;
+     r = 0;
+     theta = 0.04;
+     T = 0.5;
     SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
     SSB_opt.calculate_price("finite_diff",rho,T,true);
     SSB_opt.calculate_price("decomp_approx",rho,T,true);
+     */
+    
+    
+    
+    
+    
+    // PAGE 52;
+    s0 = 100;
+    K = 97;
+    r = 0.01;
+    v0 = 0.2;
+    T = 0.5;
+    
+    gamma = 0.2;
+    
+    kappa = 4;
+    theta = 0.2;
+    
+    vector<vector<vector<double> > > mg;
+    // mesh_grid( rho_start, rho_end, rho_steps,  gamma_start, gamma_end, gamma_steps )
+    mg = mesh_grid( 0,-1,2, 0.1,0.4,2 );
+    print(mg);
+    
+    vector<vector<double> > fd_mat, ap_mat;
+    vector<double> fd_vec, ap_vec;
+    vector<double> fd_res, ap_res ;
+    SS_option SS_opt("put",s0,K,r,gamma,v0,N,kappa,theta);
+    
+    for( unsigned int i = 0; i < mg.size(); i++ ) {
+        for( unsigned int j = 0; j < mg[i].size(); j++ ) {
+            rho = mg[i][j][0];
+            gamma = mg[i][j][1];
+            cout << "(" << rho << "," << gamma << ") " << endl;;
+            
+            SS_opt.set_gamma( gamma );
+            fd_res = SS_opt.calculate_price("finite_diff",rho,T,false);
+            ap_res = SS_opt.calculate_price("decomp_approx",rho,T,false);
+            
+            fd_vec.push_back( fd_res[0] );
+            ap_vec.push_back( ap_res[0] );
+        }
+        cout << endl;
+        
+        fd_mat.push_back( fd_vec );
+        ap_mat.push_back( ap_vec );
+        
+        fd_vec.clear();
+        ap_vec.clear();
+        
+    }
+    cout << endl;
+    
+    cout << "(rho,gamma) = " << endl;
+    print(mg);
+    cout << endl;
+    
+    cout << "put value = " << endl;
+    print(fd_mat);
+    cout << endl;
+    
+    cout << "approx value = " << endl;
+    print(ap_mat);
+    cout << endl;
+    
     
 	return 0;
 }
