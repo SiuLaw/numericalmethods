@@ -18,8 +18,7 @@
 
 using namespace std;
 
-//Normal random number generator
-Normal normal(Custom);
+
 
 //base class
 class base_option{
@@ -32,6 +31,8 @@ protected:
     bool is_call;
     
     double rho_sign;
+    
+    Normal normal;
     
     string model;
     
@@ -263,6 +264,8 @@ public:
         }
         
         rho_sign = 1; // by default, the rho is not reversed;
+        Normal new_normal(Custom);
+        normal = new_normal;
     }
     
     void set_gamma(double new_gamma ) {
@@ -498,7 +501,7 @@ int main() {
     
     int N = 10; // number of path steps in the simulation
     
-    /*
+    
     // PAGE 46
     // create an put option under Hull White model
     s0 = 100;
@@ -515,7 +518,7 @@ int main() {
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
-     */
+    
     
     
     
