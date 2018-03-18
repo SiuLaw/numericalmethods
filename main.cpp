@@ -46,9 +46,6 @@ int main() {
     HW_option HW_opt("put",s0,K,r,gamma,v0,N,mu);
     HW_opt.calculate_price("finite_diff", rho, T, true);
     HW_opt.calculate_price("decomp_approx", rho, T, true);
-     
-    
-    
     
     // PAGE 49
     // create an put option under Stein Stein model
