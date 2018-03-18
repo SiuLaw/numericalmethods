@@ -15,136 +15,11 @@
 #include "misc_functions.h"
 #include "base_option.h"
 #include "Hull_White.h"
+#include "Stein_Stein.h"
+#include "Stein_Stein_Barrier.h"
 //#define M_PI 3.141592653589793238462643383279502884
 
 using namespace std;
-
-// Stein Stein model
-class SS_option : public base_option{
-protected:
-    double kappa;
-    double theta;
-    
-    void print_model_para() {
-        //  cout << "            = " << << endl;
-        cout << "   kappa    = " << kappa << endl;
-        cout << "   theta    = " << theta << endl;
-    }
-    
-    double v_increment(double v, double W, double dt, double dt_sqrt) {
-        return kappa*( theta - v ) * dt + gamma * W * dt_sqrt;
-    }
-    
-    double s_increment(double s, double Z, double dt, double dt_sqrt, double v) {
-        return r * s * dt + v * s * Z * dt_sqrt;
-    }
-    
-    double NW(double T) {
-        // PAGE 43
-        double term_1 = gamma / pow( kappa, 2.0 );
-        double term_2 = 0.5 * ( pow(theta,2.0) * ( 4.0*kappa*T - 9.0) + v0*(v0 + 4.0*theta) + pow(gamma,2.0) / kappa * ( kappa * T - 1.0 ) );
-        double term_3 = ( 2.0*theta *kappa*T*(theta-v0) + 2.0*theta * ( 3.0*theta - 2.0 * v0 ) ) * exp( -kappa * T );
-        double term_4 = 0.5 * ( pow(gamma,2.0)/kappa * ( kappa*T + 1.0 ) - (theta - v0 ) * ( 3.0*theta - v0 ) - 2.0 * kappa * T * pow( theta - v0, 2.0 )  ) * exp( -2.0*kappa*T );
-        
-        return term_1 * ( term_2 + term_3 + term_4 );
-    }
-    
-    double NN(double T) {
-        // PAGE 44
-        double term_1 = pow(gamma,2.0) / pow( kappa, 3.0 );
-        double term_2 = 0.5 * ( - 5.0 * pow(gamma,2.0)/( 4.0*kappa) + pow(v0,2.0) + 6.0 * theta * v0 - 19.0 * pow(theta, 2.0) + T * ( 8.0*pow(theta,2.0)*kappa + pow(gamma,2.0) ) );
-        double term_3 = ( 2.0*theta * ( 7.0*theta - 3*v0 ) + 4.0 * theta * ( theta - v0 ) * kappa * T ) * exp( -kappa*T );
-        double term_4 = ( 2.0*theta*( 2.0 *v0 - 3.0 *theta) + T * ( pow(gamma,2.0) - 2.0 * kappa * pow(theta-v0, 2.0) ) + pow(gamma,2.0)/(2.0*kappa) ) * exp( -2.0*kappa*T );
-        double term_5 = ( 2.0*theta*(theta - v0) ) * exp( -3.0*kappa*T );
-        double term_6 = 0.5 * ( pow(gamma,2.0) / ( 4.0 * kappa ) - pow( theta - v0, 2.0) ) * exp( -4.0*kappa*T );
-        
-        return term_1 * ( term_2 + term_3 + term_4 + term_5 + term_6 );
-    }
-public:
-    SS_option(const string& type, double s0, double K, double r, double gamma, double v0, int N, double kappa, double theta):base_option(type, s0, K, r, gamma, v0, N),kappa(kappa),theta(theta) {
-        // testing
-        model = "Stein Stein";
-    }
-};
-
-
-/************************************************************************************************************************************************************************/
-
-// Stein Stein BARRIER model
-class SSB_option : public base_option{
-protected:
-    double kappa;
-    double theta;
-    double kappa_base;
-    double theta_base;
-    
-    void print_model_para() {
-        //  cout << "            = " << << endl;
-        cout << "   kappa    = " << kappa_base << endl;
-        cout << "   theta    = " << theta_base << endl;
-        cout << "   kappa_Q  = " << kappa << endl;
-        cout << "   theta_Q  = " << theta << endl;
-    }
-    
-    double v_increment(double v, double W, double dt, double dt_sqrt) {
-        return kappa*( theta - v ) * dt + gamma * W * dt_sqrt;
-    }
-    
-    double s_increment(double s, double Z, double dt, double dt_sqrt, double v) {
-        return r * s * dt + v * s * Z * dt_sqrt;
-    }
-    
-    double NW(double T) {
-        // PAGE 43
-        double term_1 = gamma / pow( kappa, 2.0 );
-        double term_2 = 0.5 * ( pow(theta,2.0) * ( 4.0*kappa*T - 9.0) + v0*(v0 + 4.0*theta) + pow(gamma,2.0) / kappa * ( kappa * T - 1.0 ) );
-        double term_3 = ( 2.0*theta *kappa*T*(theta-v0) + 2.0*theta * ( 3.0*theta - 2.0 * v0 ) ) * exp( -kappa * T );
-        double term_4 = 0.5 * ( pow(gamma,2.0)/kappa * ( kappa*T + 1.0 ) - (theta - v0 ) * ( 3.0*theta - v0 ) - 2.0 * kappa * T * pow( theta - v0, 2.0 )  ) * exp( -2.0*kappa*T );
-        
-        return term_1 * ( term_2 + term_3 + term_4 );
-    }
-    
-    double NN(double T) {
-        // PAGE 44
-        double term_1 = pow(gamma,2.0) / pow( kappa, 3.0 );
-        double term_2 = 0.5 * ( - 5.0 * pow(gamma,2.0)/( 4.0*kappa) + pow(v0,2.0) + 6.0 * theta * v0 - 19.0 * pow(theta, 2.0) + T * ( 8.0*pow(theta,2.0)*kappa + pow(gamma,2.0) ) );
-        double term_3 = ( 2.0*theta * ( 7.0*theta - 3*v0 ) + 4.0 * theta * ( theta - v0 ) * kappa * T ) * exp( -kappa*T );
-        double term_4 = ( 2.0*theta*( 2.0 *v0 - 3.0 *theta) + T * ( pow(gamma,2.0) - 2.0 * kappa * pow(theta-v0, 2.0) ) + pow(gamma,2.0)/(2.0*kappa) ) * exp( -2.0*kappa*T );
-        double term_5 = ( 2.0*theta*(theta - v0) ) * exp( -3.0*kappa*T );
-        double term_6 = 0.5 * ( pow(gamma,2.0) / ( 4.0 * kappa ) - pow( theta - v0, 2.0) ) * exp( -4.0*kappa*T );
-        
-        return term_1 * ( term_2 + term_3 + term_4 + term_5 + term_6 );
-    }
-    
-    void update_Q_measure(double rho) {
-        // Update the kappa_Q, theta_Q using the input rho;
-        // !!!CHECK: if this depends on RHO before OR after changing sign
-        kappa = kappa_base - gamma * rho; // new kappa under measure Q
-        theta = kappa_base * theta_base / ( kappa_base - gamma * rho ); // new theta under measure Q
-    };
-    
-public:
-    SSB_option(const string& type, double s0, double K, double r, double gamma, double v0, int N, double kappa, double theta, double B):base_option(type, s0, K, r, gamma, v0, N),kappa(kappa),theta(theta),kappa_base(kappa),theta_base(theta) {
-        model = "Stein Stein Barrier";
-        
-        // PAGE 61
-        // calculate all the new values for the parameters
-        double K_new = B / K; // new stirke
-        double r_new = -r; // change the sign of r
-        
-        // reverse the rho_sign
-        rho_sign = -1;
-        
-        // update the new values
-        K = K_new;
-        r = r_new;
-    }
-};
-
-
-/************************************************************************************************************************************************************************/
-
-
 
 int main() {
     // parameters defind;
@@ -174,7 +49,7 @@ int main() {
     HW_opt.calculate_price("decomp_approx", rho, T, true);
      
     
-    /*
+    
     
     // PAGE 49
     // create an put option under Stein Stein model
