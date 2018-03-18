@@ -17,6 +17,7 @@
 #include "Hull_White.h"
 #include "Stein_Stein.h"
 #include "Stein_Stein_Barrier.h"
+#include "Heston.h"
 
 using namespace std;
 
@@ -29,6 +30,9 @@ int main() {
     double B; // barrier value for later models;
     
     int N = 10; // number of path steps in the simulation
+    
+    
+
     
     // PAGE 46
     // create an put option under Hull White model
@@ -65,10 +69,11 @@ int main() {
     SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
     
+
     
     
     
-    /*
+    
     // create an barrier option under Stein Stein model
     // PAGE 62
      B = 95;
@@ -79,7 +84,7 @@ int main() {
     SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
     SSB_opt.calculate_price("finite_diff",rho,T,true);
     SSB_opt.calculate_price("decomp_approx",rho,T,true);
-     */
+    
     
 
     
@@ -98,9 +103,13 @@ int main() {
     
     vector<vector<vector<double> > > mg;
     // mesh_grid( rho_start, rho_end, rho_steps,  gamma_start, gamma_end, gamma_steps )
-    mg = mesh_grid( 0,-1,2, 0.1,0.4,2 );
+    mg = mesh_grid( -1,-1,0, 0.1,0.4,5 );
     print(mg);
+     */
     
+    
+    
+    /*
     vector<vector<double> > fd_mat, ap_mat;
     vector<double> fd_vec, ap_vec;
     vector<double> fd_res, ap_res ;
