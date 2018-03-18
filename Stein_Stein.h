@@ -14,10 +14,12 @@ protected:
     }
     
     double v_increment(double v, double W, double dt, double dt_sqrt) {
+        // PAGE 41
         return kappa*( theta - v ) * dt + gamma * W * dt_sqrt;
     }
     
     double s_increment(double s, double Z, double dt, double dt_sqrt, double v) {
+        // PAGE 41
         return r * s * dt + v * s * Z * dt_sqrt;
     }
     
