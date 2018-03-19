@@ -253,6 +253,10 @@ public:
         gamma = new_gamma;
     }
     
+    void set_K( double new_K ) {
+        K = new_K;
+    }
+    
     vector<double> calculate_price(const string& method, double rho = -0.5, double T = 1.0, bool display_results = false) {
         
         // return containeer

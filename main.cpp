@@ -18,6 +18,9 @@
 #include "Stein_Stein.h"
 #include "Stein_Stein_Barrier.h"
 #include "Heston.h"
+#include "Heston_temp.h"
+#include "Heston_Laplace.h"
+
 
 using namespace std;
 
@@ -30,9 +33,6 @@ int main() {
     double B; // barrier value for later models;
     
     int N = 10; // number of path steps in the simulation
-    
-    
-
     
     // PAGE 46
     // create an put option under Hull White model
@@ -69,24 +69,6 @@ int main() {
     SS_opt.calculate_price("finite_diff",rho,T,true);
     SS_opt.calculate_price("decomp_approx",rho,T,true);
     
-
-    
-    
-    
-    
-    // create an barrier option under Stein Stein model
-    // PAGE 62
-     B = 95;
-     r = 0;
-     theta = 0.04;
-     T = 0.5;
-     
-    SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
-    SSB_opt.calculate_price("finite_diff",rho,T,true);
-    SSB_opt.calculate_price("decomp_approx",rho,T,true);
-    
-    
-
     
     /*
     // PAGE 52;
@@ -105,11 +87,7 @@ int main() {
     // mesh_grid( rho_start, rho_end, rho_steps,  gamma_start, gamma_end, gamma_steps )
     mg = mesh_grid( -1,-1,0, 0.1,0.4,5 );
     print(mg);
-     */
     
-    
-    
-    /*
     vector<vector<double> > fd_mat, ap_mat;
     vector<double> fd_vec, ap_vec;
     vector<double> fd_res, ap_res ;
@@ -150,7 +128,55 @@ int main() {
     cout << "approx value = " << endl;
     print(ap_mat);
     cout << endl;
-     */
+    */
+    
+    
+    // PAGE 53
+    // create an put option under Heston model
+    s0 = 100;
+    v0 = 0.04;
+    r = 0.01;
+    kappa = 4;
+    theta = 0.04;
+    gamma = 0.2;
+    rho = -1;
+    T = 0.5;
+    double k_lower = 97;
+    double k_upper = 110;
+    double k_current = k_lower;
+    double dk = 0.5;
+    
+    vector<double> prices;
+    cout<<"k     price"<<endl;
+    while(k_current <= k_upper){
+        cout<<k_current<<"    ";
+        cout<<HestonDe(s0,v0,r,kappa,theta,gamma,rho,T,k_current)<<endl;
+        k_current+=dk;
+    }
+    
+    /*
+     // create an barrier option under Stein Stein model
+     // PAGE 62
+     B = 95;
+     r = 0;
+     theta = 0.04;
+     T = 0.5;
+     
+     SSB_option SSB_opt("put",s0,K,r,gamma,v0,N,kappa,theta,B);
+     SSB_opt.calculate_price("finite_diff",rho,T,true);
+     SSB_opt.calculate_price("decomp_approx",rho,T,true);
+    */
+    
+    // PAGE 88
+    // results under Heston_Laplace model
+    
+    r =0;
+    B = 110;
+    K = 100.0;
+    cout<<HestonbarrierLaplaceFTrB(K,r,B);
+    for (K=100.0;K<110.1;K+=0.5){
+        cout<<K<<",   "<<HestonbarrierLaplaceFTrB(K,r,B)<< endl;
+    }
     
 	return 0;
 }
